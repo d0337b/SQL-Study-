@@ -32,7 +32,7 @@ VALUES (?, ?, ?, ?, ?, ?)
 
 conn.commit()
 
-cursor.execute("SELECT  FROM sales")
+cursor.execute("SELECT * FROM sales")
 rows = cursor.fetchall()
 
 for row in rows:
