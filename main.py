@@ -32,7 +32,13 @@ VALUES (?, ?, ?, ?, ?, ?)
 
 conn.commit()
 
-cursor.execute("SELECT * FROM sales")
+cursor.execute("""SELECT customer, SUM(amount) AS total_amount, COUNT(*) AS order_count
+               FROM sales
+               WHERE region = 'Seoul' or region = 'Busan'
+               GROUP BY customer
+               HAVING total_amount >= 100
+               ORDER BY total_amount DESC
+               """)
 rows = cursor.fetchall()
 
 for row in rows:
