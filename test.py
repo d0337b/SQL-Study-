@@ -29,7 +29,8 @@ customers_data = [
     (101, "Kim", "VIP"),
     (102, "Lee", "Basic"),
     (103, "Park", "Basic"),
-    (104, "Choi", "VIP")
+    (104, "Choi", "VIP"),
+    (105, "Jung", "Basic")
 ]
 
 sales_data = [
@@ -54,13 +55,12 @@ VALUES (?, ?, ?, ?, ?, ?)
 conn.commit()
 
 #쿼리 연습때리기
-query = """ SELECT c.customer_grade, AVG(s.amount) AS average_amount
-FROM sales AS s
-JOIN customers AS c
+query = """ SELECT c.customer_name, count(s.customer_id) AS order_count
+FROM customers AS c
+LEFT JOIN sales AS s
 ON s.customer_id = c.customer_id
-GROUP BY c.customer_grade
-HAVING average_amount >= 300
-ORDER BY average_amount DESC
+GROUP BY c.customer_name
+ORDER BY order_count DESC
 """
 
 cursor.execute(query)

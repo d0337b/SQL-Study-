@@ -55,12 +55,12 @@ VALUES (?, ?, ?, ?, ?, ?)
 conn.commit()
 
 #쿼리 연습때리기
-query = """ SELECT c.customer_name, c.customer_grade
+query = """ SELECT c.customer_name, count(s.customer_id) AS order_count
 FROM customers AS c
 LEFT JOIN sales AS s
 ON s.customer_id = c.customer_id
-WHERE s.customer_id IS NULL
-ORDER BY c.customer_name DESC
+GROUP BY c.customer_name
+ORDER BY order_count DESC
 """
 
 cursor.execute(query)
