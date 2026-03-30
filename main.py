@@ -55,12 +55,26 @@ VALUES (?, ?, ?, ?, ?, ?)
 conn.commit()
 
 #쿼리 연습때리기
-query = """ SELECT c.customer_name, count(s.customer_id) AS order_count
-FROM customers AS c
-LEFT JOIN sales AS s
-ON s.customer_id = c.customer_id
-GROUP BY c.customer_name
-ORDER BY order_count DESC
+query = """
+--sql
+SELECT c.customer_grade,
+    SUM(CASE
+        WHEN s.amount >= 1000 THEN 1
+        ELSE 0
+    END) AS high_order_count,
+
+    SUM(CASE
+        WHEN s.amount < 1000 THEN 1
+        ELSE 0
+    END) AS non_high_order_count,
+
+COALESCE(SUM(s.amount),0) AS total_amount
+FROM sales AS s
+JOIN customers AS c
+ON c.customer_id = s.customer_id
+GROUP BY c.customer_grade
+ORDER BY total_amount DESC
+;
 """
 
 cursor.execute(query)
