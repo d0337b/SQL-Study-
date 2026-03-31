@@ -57,23 +57,40 @@ conn.commit()
 #쿼리 연습때리기
 query = """
 --sql
-SELECT c.customer_grade,
+WITH customers_summary AS (
+    SELECT strftime('%Y-%m', s.order_date) AS order_month,
+    c.customer_grade,
+    COUNT(s.order_id) AS total_order_count,
+    COALESCE(SUM(s.amount),0) AS total_amount,
     SUM(CASE
         WHEN s.amount >= 1000 THEN 1
         ELSE 0
     END) AS high_order_count,
 
     SUM(CASE
-        WHEN s.amount < 1000 THEN 1
+        WHEN s.region = 'Seoul' THEN 1
         ELSE 0
-    END) AS non_high_order_count,
+    END) AS seoul_order_count
 
-COALESCE(SUM(s.amount),0) AS total_amount
-FROM sales AS s
-JOIN customers AS c
-ON c.customer_id = s.customer_id
-GROUP BY c.customer_grade
-ORDER BY total_amount DESC
+    FROM customers AS c
+    JOIN sales AS s
+    ON c.customer_id = s.customer_id
+    GROUP BY order_month, c.customer_grade
+)
+SELECT order_month, customer_grade, total_order_count, total_amount,
+high_order_count, seoul_order_count,
+
+CASE
+    WHEN total_amount >= 2000 THEN 'A'
+    WHEN total_amount >= 1000 THEN 'B'
+    WHEN total_amount >= 1 THEN 'C'
+    ELSE 'No Order'
+END AS amount_band
+
+FROM customers_summary
+WHERE customer_grade IN ('VIP', 'Basic') AND total_amount >= 100
+ORDER BY order_month ASC, customer_grade ASC, total_amount DESC
+
 ;
 """
 
