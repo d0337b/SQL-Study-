@@ -39,7 +39,9 @@ sales_data = [
     (3, 103, "Seoul", "Keyboard", 80, "2026-03-03"),
     (4, 104, "Gwangju", "Monitor", 300, "2026-03-03"),
     (5, 101, "Seoul", "Mouse", 50, "2026-03-05"),
-    (6, 102, "Busan", "Laptop", 1300, "2026-03-07")
+    (6, 102, "Busan", "Laptop", 1300, "2026-03-07"),
+    (7, 103, "Seoul", "Monitor", 500, "2026-01-15"),
+    (8, 104, "Busan", "Mouse", 70, "2026-02-12")
 ]
 
 cursor.executemany("""
@@ -59,41 +61,47 @@ conn.commit()
 cursor.execute(
 """
 --sql
-WITH customers_summary AS (
-    SELECT strftime('%Y-%m', s.order_date) AS order_month,
-    c.customer_grade,
-    COUNT(s.order_id) AS total_order_count,
+WITH customer_summary AS(
+    SELECT c.customer_name, c.customer_grade, COUNT(s.order_id) AS total_order_count,
     COALESCE(SUM(s.amount),0) AS total_amount,
-    SUM(CASE
-        WHEN s.amount >= 1000 THEN 1
-        ELSE 0
-    END) AS high_order_count,
 
     SUM(CASE
-        WHEN s.region = 'Seoul' THEN 1
+        WHEN julianday('2026-04-01') - julianday(s.order_date) <= 30 THEN s.amount
         ELSE 0
-    END) AS seoul_order_count
+    END) AS current_0_30_amount,
+
+    SUM(CASE
+        WHEN julianday('2026-04-01') - julianday(s.order_date) >= 31 AND 
+        julianday('2026-04-01') - julianday(s.order_date) <= 60 THEN s.amount
+        ELSE 0
+    END) AS over_31_60_amount,
+
+    SUM(CASE
+        WHEN julianday('2026-04-01') - julianday(s.order_date) >= 61 THEN s.amount
+        ELSE 0
+    END) AS over_61_plus_amount
 
     FROM customers AS c
     LEFT JOIN sales AS s
     ON c.customer_id = s.customer_id
-    GROUP BY order_month, c.customer_grade
+    GROUP BY c.customer_name, c.customer_grade
 )
-SELECT order_month, customer_grade, total_order_count, total_amount,
-high_order_count, seoul_order_count,
 
-CASE
-    WHEN total_amount >= 2000 THEN 'A'
-    WHEN total_amount >= 1000 THEN 'B'
-    WHEN total_amount >= 1 THEN 'C'
-    ELSE 'No Order'
-END AS amount_band
+SELECT customer_name, customer_grade, total_order_count, total_amount,
+current_0_30_amount, over_31_60_amount, over_61_plus_amount,
 
-FROM customers_summary
-WHERE customer_grade IN ('VIP', 'Basic')
-GROUP BY order_month, customer_grade
-HAVING total_amount >= 100
-ORDER BY order_month ASC, customer_grade ASC, total_amount ASC
+    CASE
+        WHEN over_61_plus_amount > 0 THEN 'Risk'
+        ELSE 'Normal'
+    END AS risk_flag,
+
+    CASE
+        WHEN total_amount = 0 THEN 0
+        ELSE CAST(over_61_plus_amount AS REAL) / total_amount
+    END AS risk_ratio
+
+FROM customer_summary
+ORDER BY risk_ratio DESC, over_61_plus_amount DESC, customer_name ASC
 ;
 """)
 rows = cursor.fetchall()
