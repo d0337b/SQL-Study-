@@ -82,19 +82,17 @@ WITH customer_summary AS(
     ON c.customer_id = s.customer_id
     GROUP BY c.customer_name, c.customer_grade
 )
-
 SELECT customer_name, customer_grade, total_amount,
 current_0_30_amount, over_31_60_amount, over_61_plus_amount,
+CASE
+    WHEN over_61_plus_amount > 0 THEN 'Risk'
+    ELSE 'Normal'
+END AS risk_flag,
 
-    CASE
-        WHEN over_61_plus_amount > 0 THEN 'Risk'
-        ELSE 'Normal'
-    END AS risk_flag,
-
-    CASE
-        WHEN total_amount = 0 THEN 0
-        ELSE CAST(over_61_plus_amount AS REAL) / total_amount
-    END AS risk_ratio
+CASE
+    WHEN total_amount = 0 THEN 0
+    ELSE CAST(over_61_plus_amount AS REAL) / total_amount
+END AS risk_ratio
 
 FROM customer_summary
 ORDER BY 
