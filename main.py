@@ -58,22 +58,22 @@ conn.commit()
 query = """
 --sql
 WITH customer_summary AS(
-    SELECT c.customer_name, c.customer_grade, COUNT(s.order_id) AS total_order_count,
+    SELECT c.customer_name, c.customer_grade,
     COALESCE(SUM(s.amount),0) AS total_amount,
 
     SUM(CASE
-        WHEN julianday('2026-04-01') - julianday(s.order_date) <= 30 THEN s.amount
+        WHEN julianday('2026-04-02') - julianday(s.order_date) <= 30 THEN s.amount
         ELSE 0
     END) AS current_0_30_amount,
 
     SUM(CASE
-        WHEN julianday('2026-04-01') - julianday(s.order_date) >= 31 AND 
-        julianday('2026-04-01') - julianday(s.order_date) <= 60 THEN s.amount
+        WHEN julianday('2026-04-02') - julianday(s.order_date) >= 31 AND 
+        julianday('2026-04-02') - julianday(s.order_date) <= 60 THEN s.amount
         ELSE 0
     END) AS over_31_60_amount,
 
     SUM(CASE
-        WHEN julianday('2026-04-01') - julianday(s.order_date) >= 61 THEN s.amount
+        WHEN julianday('2026-04-02') - julianday(s.order_date) >= 61 THEN s.amount
         ELSE 0
     END) AS over_61_plus_amount
 
@@ -83,7 +83,7 @@ WITH customer_summary AS(
     GROUP BY c.customer_name, c.customer_grade
 )
 
-SELECT customer_name, customer_grade, total_order_count, total_amount,
+SELECT customer_name, customer_grade, total_amount,
 current_0_30_amount, over_31_60_amount, over_61_plus_amount,
 
     CASE
@@ -97,7 +97,12 @@ current_0_30_amount, over_31_60_amount, over_61_plus_amount,
     END AS risk_ratio
 
 FROM customer_summary
-ORDER BY risk_ratio DESC, over_61_plus_amount DESC, customer_name ASC
+ORDER BY 
+CASE
+    WHEN risk_flag = 'Risk' THEN 1
+    ELSE 2
+END,
+risk_ratio DESC, total_amount DESC, customer_name ASC
 ;
 """
 
