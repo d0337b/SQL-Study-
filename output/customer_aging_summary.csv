@@ -1,0 +1,6 @@
+customer_name,customer_grade,total_amount,current_0_30_amount,over_31_60_amount,over_61_plus_amount,risk_flag,risk_ratio
+Park,Basic,580,80,0,500,Risk,0.8620689655172413
+Lee,Basic,1350,1300,50,0,Normal,0.0
+Kim,VIP,1250,50,1200,0,Normal,0.0
+Choi,VIP,370,300,70,0,Normal,0.0
+Jung,Basic,0,0,0,0,Normal,0.0

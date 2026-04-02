@@ -1,0 +1,3 @@
+customer_grade,customer_count,grade_total_amount,grade_total_over_61_plus_amount,risky_customer_count
+Basic,3,1930,500,1
+VIP,2,1620,0,0
