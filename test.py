@@ -1,19 +1,14 @@
 import sqlite3 
-
-def run_sql_file(file_path):
-    print(f"\n ---{file_path} 실행 결과 ---")
+import pandas as pd
+def save_sql_to_csv(sql_path, csv_path):
     conn = sqlite3.connect("practice.db")
-    cursor = conn.cursor()
-    with open(file_path, "r", encoding="utf-8") as file:
+    with open(sql_path, "r", encoding="utf-8") as file:
         query = file.read()
 
-    cursor.execute(query)
-    rows = cursor.fetchall() #fetchall()이 다 꺼내오는거임
-
-    for row in rows:
-        print(row)
+    df = pd.read_sql_query(query, conn)
+    df.to_csv(csv_path, index=False)
 
     conn.close()
 
-run_sql_file("sql/01_customer_aging_summary.sql")
-run_sql_file("sql/02_grade_risk_summary.sql")
+save_sql_to_csv("sql/01_customer_aging_summary.sql", "output/customer_aging_summary.csv")
+save_sql_to_csv("sql/02_grade_risk_summary.sql", "output/grade_risk_summary.csv")
