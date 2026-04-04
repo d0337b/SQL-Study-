@@ -1,14 +1,29 @@
-import sqlite3 
-import pandas as pd
-def save_sql_to_csv(sql_path, csv_path):
+import sqlite3
+
+def run_sql_file(sql_path):
     conn = sqlite3.connect("practice.db")
+    cursor = conn.cursor()
+    
     with open(sql_path, "r", encoding="utf-8") as file:
         query = file.read()
+    
+    cursor.execute(query)
 
-    df = pd.read_sql_query(query, conn)
-    df.to_csv(csv_path, index=False)
+    # 컬럼명 보기
+    columns = [desc[0] for desc in cursor.description]
+    print("\n[columns]")
+    print(columns)
 
+    # 결과 보기
+    rows = cursor.fetchall()
+    print("\n[rows]")
+    for row in rows:
+        print(row)
+    
     conn.close()
 
-save_sql_to_csv("sql/01_customer_aging_summary.sql", "output/customer_aging_summary.csv")
-save_sql_to_csv("sql/02_grade_risk_summary.sql", "output/grade_risk_summary.csv")
+def main():
+    run_sql_file("sql/02_grade_risk_summary.sql")
+
+if __name__ == "__main__":
+    main()
